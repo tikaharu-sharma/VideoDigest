@@ -5,6 +5,24 @@ import os
 DOWNLOAD_DIR = 'downloads'
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+
+def _log_js_runtime_status():
+    """Two JS-runtime fixes (yt-dlp-ejs install, nodejs->quickjs swap) haven't
+    visibly resolved 'n challenge solving failed' -- log what yt-dlp itself
+    actually detects on THIS server, instead of trusting local test results."""
+    try:
+        from yt_dlp.utils._jsruntime import DenoJsRuntime, NodeJsRuntime, QuickJsRuntime, BunJsRuntime
+        for cls in (DenoJsRuntime, NodeJsRuntime, QuickJsRuntime, BunJsRuntime):
+            print(f"JS runtime check -- {cls.__name__}: {cls().info}")
+    except Exception as e:
+        print(f"JS runtime check raised: {e!r}")
+    try:
+        import yt_dlp_ejs
+        print(f"yt_dlp_ejs importable, version {getattr(yt_dlp_ejs, '__version__', '?')}")
+    except ImportError as e:
+        print(f"yt_dlp_ejs NOT importable: {e!r}")
+
+
 def _cookiefile_from_env() -> str | None:
     """Hosted deployments get IP-blocked by YouTube (403) without an
     authenticated session. YOUTUBE_COOKIES holds a full cookies.txt export
@@ -47,6 +65,8 @@ def download_youtube_audio(url :str) ->str:
     cookiefile = _cookiefile_from_env()
     if cookiefile:
         ydl_opts['cookiefile'] = cookiefile
+
+    _log_js_runtime_status()
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
