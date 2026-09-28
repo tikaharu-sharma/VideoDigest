@@ -1,7 +1,15 @@
 import os
+import sys
 
 import streamlit as st
 from dotenv import load_dotenv
+
+# stdout is block-buffered (not line-buffered) when it isn't a terminal, which is
+# the case in every hosted deployment -- since this process never exits between
+# reruns, print() output (ours and every core/utils module's) can sit in an
+# unflushed buffer indefinitely and never reach the platform's logs. Force
+# line-buffering so `print()` actually shows up when you need it for debugging.
+sys.stdout.reconfigure(line_buffering=True)
 
 # Must run before core imports: transcriber reads WHISPER_MODEL at import time
 load_dotenv()
