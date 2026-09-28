@@ -35,11 +35,13 @@ def download_youtube_audio(url :str) ->str:
             'preferredquality': '192',
         }],
         "quiet": True,
-        # yt-dlp's default player client for logged-in sessions (tv_downgraded) is
-        # currently broken upstream (yt-dlp/yt-dlp#17389, "The page needs to be
-        # reloaded") -- force the clients yt-dlp's own maintainers recommend as a
-        # workaround until that's fixed in a release.
-        'extractor_args': {'youtube': {'player_client': ['default', 'web_embedded']}},
+        # tv_downgraded (currently broken upstream, yt-dlp/yt-dlp#17389, "The page
+        # needs to be reloaded") is *inside* yt-dlp's own "default" client set for
+        # authenticated sessions (_DEFAULT_AUTHED_CLIENTS, per yt_dlp's youtube
+        # extractor source) -- so 'default' alone doesn't avoid it once cookies are
+        # valid. Explicitly exclude it instead of replacing the whole default set,
+        # so this stays correct even if that set's composition changes upstream.
+        'extractor_args': {'youtube': {'player_client': ['default', '-tv_downgraded']}},
     }
 
     cookiefile = _cookiefile_from_env()
