@@ -22,18 +22,21 @@ from core.extractor import extract_action_items, extract_key_decisions, extract_
 from core.rag_engine import build_rag_chain, ask_question
 from core.vector_store import meeting_id
 
-st.set_page_config(page_title="AI Meeting Assistant", page_icon="🎙️", layout="wide")
+st.set_page_config(page_title="VideoDigest", page_icon="🎬", layout="wide")
 
 if "result" not in st.session_state:
     st.session_state.result = None
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-st.title("🎙️ AI Meeting Assistant")
-st.caption("Turn a recording into a summary, action items, decisions, and a chat-ready knowledge base.")
+st.title("🎬 VideoDigest")
+st.caption(
+    "Skip the hour-long lecture or video. Get the summary, key questions, and action "
+    "items, then ask the assistant anything about it."
+)
 
 with st.sidebar:
-    st.header("New Meeting")
+    st.header("New Video")
     input_mode = st.radio("Input type", ["YouTube URL", "Upload audio or video file"])
 
     source = None
@@ -56,7 +59,7 @@ with st.sidebar:
             source = local_path
 
     process_clicked = st.button(
-        "Process Meeting", disabled=source is None, type="primary", use_container_width=True
+        "Summarize Video", disabled=source is None, type="primary", use_container_width=True
     )
 
 # Runs only on the rerun where the button was actually clicked -- every other
@@ -95,14 +98,14 @@ if process_clicked and source:
             "questions": questions,
             "rag_chain": rag_chain,
         }
-        st.session_state.chat_history = []  # new meeting -> old chat no longer applies
+        st.session_state.chat_history = []  # new video -> old chat no longer applies
     except Exception as e:
         st.error(f"Processing failed: {e}")
 
 result = st.session_state.result
 
 if not result:
-    st.info("👈 Enter a YouTube URL or upload an audio file, then click **Process Meeting** to get started.")
+    st.info("👈 Paste a YouTube URL or upload a lecture/video file, then click **Summarize Video** to get started.")
 else:
     st.subheader(result["title"])
 
@@ -142,13 +145,13 @@ else:
         )
 
     st.divider()
-    st.subheader("💬 Chat with your meeting")
+    st.subheader("💬 Ask about this video")
 
     for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    question = st.chat_input("Ask a question about this meeting...")
+    question = st.chat_input("Ask a question about this video...")
     if question:
         st.session_state.chat_history.append({"role": "user", "content": question})
         with st.chat_message("user"):
