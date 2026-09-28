@@ -1,9 +1,46 @@
-# 🎙️ AI Meeting Assistant
+# 🎬 VideoDigest — AI Video & Lecture Summarizer
 
-Takes audio from a YouTube URL or an uploaded file, transcribes it locally with Whisper,
-summarizes it and extracts action items / key decisions / open questions via LangChain LCEL
-chains + Claude, and supports RAG-based chat over the transcript via ChromaDB + HuggingFace
-embeddings.
+**[Live demo](https://aivideoagent.streamlit.app)** · Built Jul 2026 – Sep 2026
+
+Turns a recorded lecture, meeting, or any long video into a summary, key questions, and
+action items — then lets you ask it follow-up questions directly, instead of scrubbing
+back through the recording to find one answer.
+
+## Why
+
+Long recordings are slow to get through when you just need the substance. This started as
+a personal tool for missed lectures — rather than replaying a full recording, I wanted the
+key points up front and the ability to ask something specific ("what did they say the
+deadline was?") and get a grounded answer pulled from the actual transcript.
+
+## How it works
+
+1. **Ingest** — a YouTube URL or an uploaded audio/video file is downloaded/converted and
+   chunked (`yt-dlp` + `ffmpeg`/`pydub`).
+2. **Transcribe** — chunks are transcribed locally with OpenAI's Whisper (no audio leaves
+   the machine at this stage).
+3. **Summarize & extract** — LangChain (LCEL) pipelines run the transcript through Claude:
+   - Map-reduce summarization, so a long transcript doesn't have to fit in one context
+     window or one API call.
+   - Structured extraction (action items, key decisions, open questions), chunked the same
+     way for long recordings.
+4. **Index for chat** — the transcript is embedded (Hugging Face sentence-transformers,
+   `all-MiniLM-L6-v2`) into a per-video ChromaDB collection.
+5. **Ask questions** — a RAG chain retrieves the most relevant transcript passages for each
+   question and answers from those only — the prompt explicitly instructs the model to say
+   so if the answer isn't in the retrieved context, rather than guess.
+
+## Stack
+
+Python · Streamlit · LangChain (LCEL) · Anthropic Claude API · OpenAI Whisper · ChromaDB ·
+Hugging Face sentence-transformers · yt-dlp · ffmpeg/pydub
+
+## Try it
+
+- **Fastest path:** upload a short audio or video file on the [live demo](https://aivideoagent.streamlit.app).
+- **YouTube URLs:** supported, but extraction is being actively hardened against upstream
+  changes in YouTube's own anti-bot measures (a moving target for every tool in this space,
+  not unique to this project) — file upload is the most reliable path right now.
 
 ## Running locally
 

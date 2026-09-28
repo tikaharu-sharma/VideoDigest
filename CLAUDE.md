@@ -1,10 +1,11 @@
-# video-agent (AI Meeting Assistant)
+# video-agent (VideoDigest — AI Video & Lecture Summarizer)
 
 ## What this is
-Takes audio from a YouTube URL or a local file, transcribes it locally with Whisper,
-summarizes it and extracts action items/decisions/questions via LangChain LCEL + Claude's
-API, and supports RAG-based chat over the transcript via ChromaDB + HuggingFace embeddings.
-Streamlit UI and PDF/TXT export are not yet built.
+Takes audio from a YouTube URL or a local audio/video file, transcribes it locally with
+Whisper, summarizes it and extracts action items/decisions/questions via LangChain LCEL +
+Claude's API, and supports RAG-based chat over the transcript via ChromaDB + HuggingFace
+embeddings. Streamlit UI (`app.py`) with PDF/TXT export is live at
+https://aivideoagent.streamlit.app.
 
 ## Architecture
 - `utils/audio_processor.py` — download/convert/chunk audio. Entry point: `process_input(source)`.
@@ -32,13 +33,13 @@ Streamlit UI and PDF/TXT export are not yet built.
   that `pydub` depends on.
 - Anthropic API key: `ANTHROPIC_API_KEY` in `.env`. Don't pass `api_key=` explicitly —
   `ChatAnthropic` reads the env var itself.
-- `requirements.txt` lists direct dependencies only (streamlit/fpdf2 are for the planned UI/export).
+- `requirements.txt` lists direct dependencies only.
 
 ## Git workflow
 - Feature branches per component, merged via PR on GitHub (not committed directly to main).
 - `.gitignore` excludes `.venv/`, `__pycache__/`, `downloads/`, `vector_db/`, `.env`, `.DS_Store`.
 
 ## Known gaps / next steps
-- No chunking in extractor.py for long transcripts
-- No Streamlit UI yet — currently CLI-only via main.py
-- No PDF/TXT export yet
+- YouTube URL ingestion is fragile against upstream yt-dlp/YouTube extraction changes
+  (see `utils/audio_processor.py` for the current cookies/player-client workarounds).
+  File upload (audio or video) is unaffected and is the reliable path.
