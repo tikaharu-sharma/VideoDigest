@@ -5,6 +5,21 @@ import os
 DOWNLOAD_DIR = 'downloads'
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+def _cookiefile_from_env() -> str | None:
+    """Hosted deployments get IP-blocked by YouTube (403) without an
+    authenticated session. YOUTUBE_COOKIES holds a full cookies.txt export
+    (Netscape format) as a secret; write it out once per process so yt-dlp
+    can use it. Unset locally -- local downloads work without it."""
+    cookies = os.getenv("YOUTUBE_COOKIES")
+    if not cookies:
+        return None
+    path = os.path.join(DOWNLOAD_DIR, "cookies.txt")
+    if not os.path.isfile(path):
+        with open(path, "w") as f:
+            f.write(cookies)
+    return path
+
+
 def download_youtube_audio(url :str) ->str:
     output_path = os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s')
     ydl_opts = {
@@ -17,6 +32,10 @@ def download_youtube_audio(url :str) ->str:
         }],
         "quiet": True,
     }
+
+    cookiefile = _cookiefile_from_env()
+    if cookiefile:
+        ydl_opts['cookiefile'] = cookiefile
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
