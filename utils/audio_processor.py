@@ -12,11 +12,15 @@ def _cookiefile_from_env() -> str | None:
     can use it. Unset locally -- local downloads work without it."""
     cookies = os.getenv("YOUTUBE_COOKIES")
     if not cookies:
+        print("YOUTUBE_COOKIES not set -- downloading without authentication.")
         return None
     path = os.path.join(DOWNLOAD_DIR, "cookies.txt")
     if not os.path.isfile(path):
         with open(path, "w") as f:
             f.write(cookies)
+    header_ok = cookies.lstrip().startswith(("# Netscape", "# HTTP Cookie File"))
+    print(f"Using YouTube cookies from {path} ({len(cookies)} chars, "
+          f"{'looks like valid Netscape format' if header_ok else 'MISSING expected Netscape header -- check how the secret was pasted'}).")
     return path
 
 
