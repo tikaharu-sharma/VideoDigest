@@ -1,5 +1,6 @@
 audioop-lts==0.2.2; python_version >= "3.13"
 chromadb==1.5.9
+deno==2.9.7
 fpdf2==2.8.8
 langchain-anthropic==1.7.4
 langchain-chroma==1.1.0
