@@ -1,3 +1,13 @@
+# CPU-only torch on Linux (the deployment target): the default PyPI wheel
+# bundles ~10GB of unused CUDA libraries (nvidia-cublas, nvidia-cudnn, triton,
+# ...) even on machines with no GPU. The +cpu version string only exists on
+# this index, so pip can't accidentally resolve the CUDA build. Scoped to
+# Linux only -- macOS's default PyPI wheel is already CPU-only (no +cpu
+# variant exists for it), so this pin would break local installs otherwise;
+# torch still resolves transitively via sentence-transformers/whisper there.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0+cpu; sys_platform == "linux"
+
 audioop-lts==0.2.2; python_version >= "3.13"
 chromadb==1.5.9
 deno==2.9.7
