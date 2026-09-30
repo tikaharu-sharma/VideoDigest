@@ -76,3 +76,25 @@ in a local `.env` file (see `.env` — never commit this file).
 - Free-tier RAM is limited (historically ~1GB) — torch + Whisper + ChromaDB +
   sentence-transformers loaded together can be tight. If the app crashes or won't start,
   try `WHISPER_MODEL=tiny` first.
+- **YouTube URL downloads may be blocked at the network level.** YouTube actively blocks
+  many cloud/datacenter IP ranges regardless of authentication — this isn't specific to a
+  code bug or to this project. File upload (audio or video) is unaffected and fully reliable
+  everywhere.
+
+## Deploying with Docker (Render, Fly.io, or any container host)
+
+A `Dockerfile` is included for hosts without Streamlit Cloud's `packages.txt`/`requirements.txt`
+auto-detection.
+
+```bash
+docker build -t videodigest .
+docker run -p 8501:8501 -e PORT=8501 -e ANTHROPIC_API_KEY=sk-ant-... videodigest
+```
+
+On Render: **New → Web Service**, connect this repo, environment **Docker** (it auto-detects
+the `Dockerfile`), add `ANTHROPIC_API_KEY` / `YOUTUBE_COOKIES` / `WHISPER_MODEL` under
+**Environment**. Render injects `$PORT` automatically — the `CMD` already binds to it.
+
+The image pins a CPU-only `torch` build on Linux (see `requirements.txt`) — the default PyPI
+wheel bundles ~10GB of unused CUDA libraries even without a GPU, which matters on a
+free-tier build/storage budget.
