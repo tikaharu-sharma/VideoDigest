@@ -11,6 +11,16 @@ import yt_dlp
 TEST_VIDEO = "https://www.youtube.com/watch?v=GecQwh2iwJY"
 
 
+def _cookiefile_from_env() -> str | None:
+    cookies = os.environ.get("YOUTUBE_COOKIES")
+    if not cookies:
+        return None
+    path = "/tmp/cookies.txt"
+    with open(path, "w") as f:
+        f.write(cookies)
+    return path
+
+
 def run_test() -> str:
     try:
         opts = {
@@ -18,12 +28,17 @@ def run_test() -> str:
             "quiet": True,
             "extractor_args": {"youtube": {"player_client": ["default", "-tv_downgraded"]}},
         }
+        cookiefile = _cookiefile_from_env()
+        if cookiefile:
+            opts["cookiefile"] = cookiefile
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(TEST_VIDEO, download=False)
         formats = [f for f in info.get("formats", []) if f.get("acodec") != "none"]
-        return f"SUCCESS: {len(formats)} real audio formats found from this host's network."
+        auth = "WITH cookies" if cookiefile else "WITHOUT cookies"
+        return f"SUCCESS ({auth}): {len(formats)} real audio formats found from this host's network."
     except Exception as e:
-        return f"FAILED: {type(e).__name__}: {e}"
+        auth = "WITH cookies" if cookiefile else "WITHOUT cookies"
+        return f"FAILED ({auth}): {type(e).__name__}: {e}"
 
 
 RESULT = run_test()
