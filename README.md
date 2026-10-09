@@ -16,7 +16,8 @@ deadline was?") and get a grounded answer pulled from the actual transcript.
 ## How it works
 
 1. **Ingest** — a YouTube URL or an uploaded audio/video file is downloaded/converted and
-   chunked (`yt-dlp` + `ffmpeg`/`pydub`).
+   chunked (`yt-dlp` + `ffmpeg`/`pydub`). YouTube URL input is currently disabled on the live
+   demo — see **Try it** below for why.
 2. **Transcribe** — chunks are transcribed locally with OpenAI's Whisper (no audio leaves
    the machine at this stage).
 3. **Summarize & extract** — LangChain (LCEL) pipelines run the transcript through Claude:
@@ -37,10 +38,19 @@ Hugging Face sentence-transformers · yt-dlp · ffmpeg/pydub
 
 ## Try it
 
-- **Fastest path:** upload a short audio or video file on the [live demo](https://aivideoagent.streamlit.app).
-- **YouTube URLs:** supported, but extraction is being actively hardened against upstream
-  changes in YouTube's own anti-bot measures (a moving target for every tool in this space,
-  not unique to this project) — file upload is the most reliable path right now.
+Upload a short audio or video file on the [live demo](https://aivideoagent.streamlit.app) —
+fully supported, with local Whisper transcription, Claude summarization, and RAG chat all
+working end-to-end.
+
+**YouTube URL input is currently disabled on the live demo.** YouTube actively blocks
+automated downloads from shared cloud-hosting IP ranges regardless of authentication — a
+widely documented anti-scraping measure that affects most free-tier hosting platforms, not a
+bug specific to this app (confirmed by testing against a second, different host — same
+cookies, same code, blocked on one, worked on the other). The backend implementation (cookie-
+based auth, JS-challenge solving via Deno, correct YouTube player-client selection) is done
+and does work — see `utils/audio_processor.py`, `Dockerfile`, and `yt-test/` — re-enabling it
+on the live demo is a hosting decision (which platform, and its RAM budget for the rest of the
+app) rather than something left to build.
 
 ## Running locally
 
@@ -76,15 +86,17 @@ in a local `.env` file (see `.env` — never commit this file).
 - Free-tier RAM is limited (historically ~1GB) — torch + Whisper + ChromaDB +
   sentence-transformers loaded together can be tight. If the app crashes or won't start,
   try `WHISPER_MODEL=tiny` first.
-- **YouTube URL downloads may be blocked at the network level.** YouTube actively blocks
-  many cloud/datacenter IP ranges regardless of authentication — this isn't specific to a
-  code bug or to this project. File upload (audio or video) is unaffected and fully reliable
-  everywhere.
+- YouTube URL downloads are disabled on this host — see **Try it** above for why.
 
 ## Deploying with Docker (Render, Fly.io, or any container host)
 
-A `Dockerfile` is included for hosts without Streamlit Cloud's `packages.txt`/`requirements.txt`
-auto-detection.
+Not currently used for the live demo (Streamlit Community Cloud is), but kept in the repo and
+working — this is what YouTube URL support was verified against, on a host whose IP isn't
+blocked. A `Dockerfile` is included for hosts without Streamlit Cloud's
+`packages.txt`/`requirements.txt` auto-detection. Re-enabling YouTube on the live demo means
+deploying from this instead, with enough RAM for the full app under active use (Render's free
+512MB tier was not enough — confirmed by an actual OOM running the real pipeline, not just a
+theoretical concern).
 
 ```bash
 docker build -t videodigest .

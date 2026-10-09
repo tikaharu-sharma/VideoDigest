@@ -37,13 +37,18 @@ st.caption(
 
 with st.sidebar:
     st.header("New Video")
-    input_mode = st.radio("Input type", ["YouTube URL", "Upload audio or video file"])
+    input_mode = st.radio(
+        "Input type", ["Upload audio or video file", "YouTube URL (unavailable)"]
+    )
 
     source = None
-    if input_mode == "YouTube URL":
-        url = st.text_input("YouTube URL")
-        if url.strip():
-            source = url.strip()
+    if input_mode == "YouTube URL (unavailable)":
+        st.warning(
+            "YouTube URL input is disabled on this deployment. YouTube blocks automated "
+            "downloads from shared cloud-hosting IP ranges regardless of authentication -- "
+            "a hosting-level restriction (confirmed by testing against a second host), not "
+            "a bug in the app. Please upload a file instead."
+        )
     else:
         # ffmpeg (via pydub) pulls the audio track straight out of a video
         # container -- no separate video path needed, just accept these too.
@@ -105,7 +110,7 @@ if process_clicked and source:
 result = st.session_state.result
 
 if not result:
-    st.info("👈 Paste a YouTube URL or upload a lecture/video file, then click **Summarize Video** to get started.")
+    st.info("👈 Upload a lecture/video file, then click **Summarize Video** to get started.")
 else:
     st.subheader(result["title"])
 
