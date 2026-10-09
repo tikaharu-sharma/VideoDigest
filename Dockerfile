@@ -17,4 +17,13 @@ COPY . .
 # Render (and most PaaS hosts) inject $PORT at runtime -- must bind to it and to
 # 0.0.0.0, not localhost, for external traffic to reach the container. Shell form
 # (not exec-array form) so $PORT actually gets substituted.
-CMD streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+#
+# enableCORS/enableXsrfProtection=false: Streamlit's default same-origin check
+# compares the browser's origin against what the container itself sees, which
+# doesn't match once a reverse proxy (Render's load balancer) sits in front with
+# a different external hostname. Without this, the page shell loads (plain HTTP)
+# but the WebSocket connection Streamlit needs for the actual app never
+# completes -- the page stays frozen on placeholder content indefinitely. The
+# proxy layer is the actual security boundary here, not Streamlit's own check.
+CMD streamlit run app.py --server.port $PORT --server.address 0.0.0.0 \
+    --server.headless true --server.enableCORS false --server.enableXsrfProtection false
