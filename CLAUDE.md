@@ -5,7 +5,11 @@ Takes audio from a YouTube URL or a local audio/video file, transcribes it local
 Whisper, summarizes it and extracts action items/decisions/questions via LangChain LCEL +
 Claude's API, and supports RAG-based chat over the transcript via ChromaDB + HuggingFace
 embeddings. Streamlit UI (`app.py`) with PDF/TXT export is live at
-https://aivideoagent.streamlit.app.
+https://aivideoagent.streamlit.app. YouTube URL input is gated off in the UI there (disabled
+radio option, explained inline) — Streamlit Cloud's IP range is blocked by YouTube regardless
+of auth; file upload is the only enabled input path on that deployment. The YouTube code path
+itself works (verified on Render, see README's Docker section) — this is a hosting choice, not
+missing functionality.
 
 ## Architecture
 - `utils/audio_processor.py` — download/convert/chunk audio. Entry point: `process_input(source)`.
